@@ -3,103 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <title>Markdown to PDF</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='white'>M</text></svg>">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat&family=Cascadia+Mono&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css">
     <style>
-        body { margin: 20px; font-family: Arial, sans-serif; background: #f5f5f5; }
-        .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; height: 90vh; }
+        body { margin: 0; background: #f5f5f5; font-family: 'Montserrat', sans-serif; }
+        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; height: calc(100vh - 60px); }
         .panel { flex: 1; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .controls { padding: 10px; background: #fafafa; display: flex; gap: 10px; }
+        .controls { padding: 10px; background: #fafafa; display: flex; gap: 10px; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
         select, input, button { padding: 5px; border: 1px solid #ddd; border-radius: 5px; }
         button { background: #007bff; color: white; border: none; }
         button:hover { background: #0056b3; }
-        #input { width: 100%; height: 100%; border: none; padding: 15px; font-size: 16px; resize: none; outline: none; }
-        #preview { padding: 15px; overflow-y: auto; }
-        pre, code { background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; }
-        .dot-container { margin: 10px 0; }
-        .keyword { color: #007bff; }
-        .string { color: #e74c3c; }
-        .comment { color: #6c757d; }
+        #input { width: 100%; height: calc(100vh - 100px); border: none; padding: 15px; font-size: 14px; resize: none; outline: none; box-sizing: border-box; font-family: 'Cascadia Mono', monospace; }
+        #preview { padding: 15px; font-size: 14px; max-width: 100%; word-wrap: break-word; box-sizing: border-box; overflow-y: auto; height: calc(100vh - 100px); color: #333; background: #fff; font-family: 'Cascadia Mono', monospace; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; position: relative; }
+        pre::before { content: attr(data-lang); position: absolute; top: 5px; left: 10px; font-size: 12px; color: #666; }
+        pre::after { content: "Копировать"; position: absolute; top: 5px; right: 10px; font-size: 12px; color: #007bff; cursor: pointer; }
+        code { padding: 2px 6px; background: #fae9de; color: #c56c39; border-radius: 4px; margin: 0 4px; }
+        .dot-container { margin: 10px 0; max-width: 100%; }
+        .dot-container svg { max-width: 100%; height: auto; }
+        .filename-input { padding: 5px; width: 200px; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #007bff; color: white; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+        .back-btn { background: #007bff; color: white; padding: 5px 15px; border-radius: 5px; text-decoration: none; font-size: 18px; transition: background 0.3s; }
+        .back-btn:hover { background: #0056b3; }
+        h1 { margin: 0; font-size: 24px; }
+        #notification { position: fixed; bottom: 20px; left: 20px; background: #3b82f6; color: white; padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 10px; z-index: 1000; }
+        #notification button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="particles-js"></div>
+    <header>
+        <a href="https://topittop2.gitbook.io/konspekty" class="back-btn">← Назад</a>
+        <h1>Markdown → PDF (С блок схемами) <span style="font-size: 20px;">📝</span></h1>
+    </header>
+    <div class="container" style="margin-top: 60px;">
         <div class="panel">
             <div class="controls">
+                <label>Шрифт текста:</label>
                 <select id="fontSelect">
+                    <option value="Cascadia Mono">Cascadia Mono</option>
                     <option value="Arial">Arial</option>
                     <option value="Inter">Inter</option>
                     <option value="Montserrat">Montserrat</option>
                     <option value="Times New Roman">Times New Roman</option>
                 </select>
-                <input type="number" id="fontSize" value="16" min="10" max="30">px
+                <label>Шрифт кода:</label>
+                <select id="codeFontSelect">
+                    <option value="Cascadia Mono">Cascadia Mono</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Consolas">Consolas</option>
+                    <option value="Monaco">Monaco</option>
+                </select>
+                <input type="number" id="fontSize" value="14" min="10" max="30">px
+                <input type="file" id="fontUpload" accept=".ttf,.otf">
                 <button id="downloadPDFBtn">Скачать PDF</button>
             </div>
             <textarea id="input" placeholder="Вставь Markdown..."></textarea>
         </div>
         <div class="panel">
+            <div class="controls">
+                <label>Имя файла:</label>
+                <input type="text" id="filename" class="filename-input" value="document" placeholder="Сюда вводить">.pdf
+            </div>
             <div id="preview"></div>
         </div>
     </div>
+    <div id="notification" style="display: none;">
+        <span id="notificationText"></span>
+        <button onclick="closeNotification()">×</button>
+    </div>
 
-    <!-- Подключение зависимостей -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
 
     <script>
-        // Подключение шрифтов
-        document.head.insertAdjacentHTML('beforeend', '<link href="https://fonts.googleapis.com/css2?family=Inter&family=Montserrat" rel="stylesheet">');
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#cccccc" },
+                "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" } },
+                "opacity": { "value": 0.3, "random": false },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": false },
+                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": false }, "onclick": { "enable": false } }, "modes": {} },
+            "retina_detect": true
+        });
 
         const viz = new Viz();
         const input = document.getElementById('input');
         const preview = document.getElementById('preview');
         const fontSelect = document.getElementById('fontSelect');
+        const codeFontSelect = document.getElementById('codeFontSelect');
         const fontSize = document.getElementById('fontSize');
+        const fontUpload = document.getElementById('fontUpload');
         const downloadPDFBtn = document.getElementById('downloadPDFBtn');
+        const filenameInput = document.getElementById('filename');
 
-        function highlightCode(code, lang) {
-            if (!lang || lang === 'dot') return code;
-            return code
-                .replace(/(function|if|else|for|while|return|let|const|var)/g, '<span class="keyword">$1</span>')
-                .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
-                .replace(/\/\/(.*)$/gm, '<span class="comment">//$1</span>');
-        }
-
-        function processMarkdown() {
-            let text = input.value.replace(/```dot\n([\s\S]*?)```/g, (_, dot) => `<div class="dot-container" data-dot="${encodeURIComponent(dot)}"></div>`);
-            preview.innerHTML = marked(text, { highlight: highlightCode });
-            updateStyle();
-
+        function updatePreview() {
+            let text = input.value;
+            text = text.replace(/```dot\n([\s\S]*?)```/g, (_, dot) => `<div class="dot-container" data-dot="${encodeURIComponent(dot)}"></div>`);
+            preview.innerHTML = marked.parse(text);
+            preview.style.fontFamily = fontSelect.value;
+            preview.style.fontSize = `${fontSize.value}px`;
+            preview.querySelectorAll('pre code').forEach(el => {
+                el.style.fontFamily = codeFontSelect.value;
+                el.style.maxWidth = '100%';
+                el.style.overflowX = 'auto';
+            });
             document.querySelectorAll('.dot-container').forEach(container => {
-                viz.renderSVGElement(decodeURIComponent(container.dataset.dot))
+                const dotCode = decodeURIComponent(container.dataset.dot);
+                viz.renderSVGElement(dotCode)
                     .then(svg => {
                         container.innerHTML = '';
                         container.appendChild(svg);
-                        svg.style.width = '100%';
+                        svg.style.maxWidth = '100%';
+                        svg.style.height = 'auto';
                     })
                     .catch(err => container.innerHTML = `Ошибка: ${err}`);
             });
-        }
-
-        function updateStyle() {
-            preview.style.fontFamily = fontSelect.value;
-            preview.style.fontSize = `${fontSize.value}px`;
-        }
-
-        function downloadPDF() {
-            html2pdf(preview, {
-                margin: 1,
-                filename: 'document.pdf',
-                html2canvas: { scale: 2 },
-                jsPDF: { format: 'a4', orientation: 'portrait' }
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+                const lang = block.className.replace('language-', '');
+                if (lang && lang !== 'dot') {
+                    block.parentElement.setAttribute('data-lang', lang);
+                }
             });
         }
 
-        input.addEventListener('input', processMarkdown);
-        fontSelect.addEventListener('change', updateStyle);
-        fontSize.addEventListener('change', updateStyle);
+        fontUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && (file.name.endsWith('.ttf') || file.name.endsWith('.otf'))) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const fontName = file.name.split('.')[0];
+                    const fontFace = new FontFace(fontName, event.target.result);
+                    fontFace.load().then((loadedFont) => {
+                        document.fonts.add(loadedFont);
+                        const option = document.createElement('option');
+                        option.value = fontName;
+                        option.text = fontName;
+                        fontSelect.add(option);
+                        codeFontSelect.add(option.cloneNode(true));
+                        updatePreview();
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function downloadPDF() {
+            const tempContainer = document.createElement('div');
+            tempContainer.style.width = '100%';
+            tempContainer.style.maxWidth = '100%';
+            tempContainer.style.padding = '15px';
+            tempContainer.style.fontFamily = fontSelect.value;
+            tempContainer.style.fontSize = `${fontSize.value}px`;
+            tempContainer.style.color = '#333';
+            tempContainer.style.background = '#fff';
+            tempContainer.innerHTML = preview.innerHTML;
+
+            tempContainer.querySelectorAll('.dot-container svg').forEach(svg => {
+                svg.style.maxWidth = '100%';
+                svg.style.height = 'auto';
+            });
+            tempContainer.querySelectorAll('pre, code').forEach(el => {
+                el.style.maxWidth = '100%';
+                el.style.overflowX = 'auto';
+                el.style.whiteSpace = 'pre-wrap';
+            });
+
+            document.body.appendChild(tempContainer);
+
+            const filename = filenameInput.value || 'document';
+            html2pdf(tempContainer, {
+                margin: 0.5,
+                filename: `${filename}.pdf`,
+                html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'] }
+            }).then(() => {
+                document.body.removeChild(tempContainer);
+                showNotification(filename);
+            });
+        }
+
+        function showNotification(filename) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            notificationText.innerText = `Ваш документ ${filename}.pdf был скачен. Спасибо что пользуетесь сайтом❤`;
+            notification.style.display = 'flex';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        function closeNotification() {
+            document.getElementById('notification').style.display = 'none';
+        }
+
+        input.addEventListener('input', updatePreview);
+        fontSelect.addEventListener('change', updatePreview);
+        codeFontSelect.addEventListener('change', updatePreview);
+        fontSize.addEventListener('change', updatePreview);
         downloadPDFBtn.addEventListener('click', downloadPDF);
-        processMarkdown();
+        updatePreview();
     </script>
 </body>
 </html>
