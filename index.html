@@ -161,13 +161,14 @@
 
         function downloadPDF() {
             const tempContainer = document.createElement('div');
-            tempContainer.style.width = '100%';
-            tempContainer.style.maxWidth = '100%';
-            tempContainer.style.padding = '15px';
+            tempContainer.style.width = '595pt'; // Ширина A4 в пунктах
+            tempContainer.style.maxWidth = '595pt';
+            tempContainer.style.padding = '15pt';
             tempContainer.style.fontFamily = fontSelect.value;
             tempContainer.style.fontSize = `${fontSize.value}px`;
             tempContainer.style.color = '#333';
             tempContainer.style.background = '#fff';
+            tempContainer.style.boxSizing = 'border-box';
             tempContainer.innerHTML = preview.innerHTML;
 
             tempContainer.querySelectorAll('.dot-container svg').forEach(svg => {
@@ -179,6 +180,10 @@
                 el.style.overflowX = 'auto';
                 el.style.whiteSpace = 'pre-wrap';
             });
+            tempContainer.querySelectorAll('p, pre, div.dot-container').forEach(el => {
+                el.style.breakInside = 'avoid';
+                el.style.pageBreakInside = 'avoid';
+            });
 
             document.body.appendChild(tempContainer);
 
@@ -188,7 +193,7 @@
                 filename: `${filename}.pdf`,
                 html2canvas: { scale: 2, scrollY: 0, useCORS: true },
                 jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'] }
+                pagebreak: { mode: ['css', 'legacy'], before: '.page-break', avoid: ['p', 'pre', '.dot-container'] }
             }).then(() => {
                 document.body.removeChild(tempContainer);
                 showNotification(filename);
