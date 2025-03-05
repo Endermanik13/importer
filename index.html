@@ -2,148 +2,104 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой Конспект</title>
+    <title>Markdown to PDF</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
-            margin: 0;
-            padding: 0;
-        }
-        .navbar {
-            background-color: #2c3e50;
-            padding: 15px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .nav-links a:hover {
-            color: #3498db;
-        }
-        .container {
-            max-width: 900px;
-            margin: 30px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-        p {
-            line-height: 1.6;
-            color: #333;
-        }
-        .footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #2c3e50;
-            color: white;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
+        body { margin: 20px; font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; height: 90vh; }
+        .panel { flex: 1; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        .controls { padding: 10px; background: #fafafa; display: flex; gap: 10px; }
+        select, input, button { padding: 5px; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #007bff; color: white; border: none; }
+        button:hover { background: #0056b3; }
+        #input { width: 100%; height: 100%; border: none; padding: 15px; font-size: 16px; resize: none; outline: none; }
+        #preview { padding: 15px; overflow-y: auto; }
+        pre, code { background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; }
+        .dot-container { margin: 10px 0; }
+        .keyword { color: #007bff; }
+        .string { color: #e74c3c; }
+        .comment { color: #6c757d; }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>Мой Конспект</h1>
-        <div class="nav-links" id="navLinks"></div>
+    <div class="container">
+        <div class="panel">
+            <div class="controls">
+                <select id="fontSelect">
+                    <option value="Arial">Arial</option>
+                    <option value="Inter">Inter</option>
+                    <option value="Montserrat">Montserrat</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                </select>
+                <input type="number" id="fontSize" value="16" min="10" max="30">px
+                <button id="downloadPDFBtn">Скачать PDF</button>
+            </div>
+            <textarea id="input" placeholder="Вставь Markdown..."></textarea>
+        </div>
+        <div class="panel">
+            <div id="preview"></div>
+        </div>
     </div>
 
-    <div class="container" id="content">
-        <h2 id="pageTitle">Главная страница</h2>
-        <p id="pageContent">Добро пожаловать! Выберите раздел в меню, чтобы просмотреть конспекты.</p>
-    </div>
-
-    <div class="footer">
-        <p>Создано автоматически © 2025</p>
-    </div>
+    <!-- Подключение зависимостей -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script>
-        // Пример данных (имитация извлеченного контента)
-        const pages = [
-            {
-                title: "Введение",
-                content: "Это раздел про введение в конспекты. Здесь основная информация."
-            },
-            {
-                title: "Основы",
-                content: "Основы включают ключевые понятия и термины. Очень полезно для начала."
-            },
-            {
-                title: "Примеры",
-                content: "Примеры помогают лучше понять материал. Смотрите и учитесь!"
-            }
-        ];
+        // Подключение шрифтов
+        document.head.insertAdjacentHTML('beforeend', '<link href="https://fonts.googleapis.com/css2?family=Inter&family=Montserrat" rel="stylesheet">');
 
-        // Функция для создания навигации
-        function createNavigation() {
-            const navLinks = document.getElementById('navLinks');
-            pages.forEach((page, index) => {
-                const link = document.createElement('a');
-                link.href = `#page${index}`;
-                link.textContent = page.title;
-                link.onclick = () => loadPage(page);
-                navLinks.appendChild(link);
+        const viz = new Viz();
+        const input = document.getElementById('input');
+        const preview = document.getElementById('preview');
+        const fontSelect = document.getElementById('fontSelect');
+        const fontSize = document.getElementById('fontSize');
+        const downloadPDFBtn = document.getElementById('downloadPDFBtn');
+
+        function highlightCode(code, lang) {
+            if (!lang || lang === 'dot') return code;
+            return code
+                .replace(/(function|if|else|for|while|return|let|const|var)/g, '<span class="keyword">$1</span>')
+                .replace(/"([^"]*)"/g, '<span class="string">"$1"</span>')
+                .replace(/\/\/(.*)$/gm, '<span class="comment">//$1</span>');
+        }
+
+        function processMarkdown() {
+            let text = input.value.replace(/```dot\n([\s\S]*?)```/g, (_, dot) => `<div class="dot-container" data-dot="${encodeURIComponent(dot)}"></div>`);
+            preview.innerHTML = marked(text, { highlight: highlightCode });
+            updateStyle();
+
+            document.querySelectorAll('.dot-container').forEach(container => {
+                viz.renderSVGElement(decodeURIComponent(container.dataset.dot))
+                    .then(svg => {
+                        container.innerHTML = '';
+                        container.appendChild(svg);
+                        svg.style.width = '100%';
+                    })
+                    .catch(err => container.innerHTML = `Ошибка: ${err}`);
             });
         }
 
-        // Функция для загрузки контента страницы
-        function loadPage(page) {
-            const titleElement = document.getElementById('pageTitle');
-            const contentElement = document.getElementById('pageContent');
-            titleElement.textContent = page.title;
-            contentElement.textContent = page.content;
-
-            // Создание отдельной страницы (имитация)
-            const newPage = `
-                <!DOCTYPE html>
-                <html lang="ru">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>${page.title}</title>
-                    <link rel="stylesheet" href="styles.css">
-                </head>
-                <body>
-                    <div class="navbar">
-                        <h1>Мой Конспект</h1>
-                        <div class="nav-links">${document.getElementById('navLinks').innerHTML}</div>
-                    </div>
-                    <div class="container">
-                        <h2>${page.title}</h2>
-                        <p>${page.content}</p>
-                    </div>
-                    <div class="footer">
-                        <p>Создано автоматически © 2025</p>
-                    </div>
-                </body>
-                </html>
-            `;
-            console.log(`Создана страница для "${page.title}":`, newPage);
-            // Здесь можно добавить логику для сохранения страницы как файла, но в браузере это ограничено
+        function updateStyle() {
+            preview.style.fontFamily = fontSelect.value;
+            preview.style.fontSize = `${fontSize.value}px`;
         }
 
-        // Инициализация
-        createNavigation();
+        function downloadPDF() {
+            html2pdf(preview, {
+                margin: 1,
+                filename: 'document.pdf',
+                html2canvas: { scale: 2 },
+                jsPDF: { format: 'a4', orientation: 'portrait' }
+            });
+        }
+
+        input.addEventListener('input', processMarkdown);
+        fontSelect.addEventListener('change', updateStyle);
+        fontSize.addEventListener('change', updateStyle);
+        downloadPDFBtn.addEventListener('click', downloadPDF);
+        processMarkdown();
     </script>
 </body>
 </html>
