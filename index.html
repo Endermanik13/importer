@@ -21,7 +21,7 @@
         pre::before { content: attr(data-lang); position: absolute; top: 5px; left: 10px; font-size: 12px; color: #666; }
         pre::after { content: "Копировать"; position: absolute; top: 5px; right: 10px; font-size: 12px; color: #007bff; cursor: pointer; }
         code { padding: 2px 6px; background: #fae9de; color: #c56c39; border-radius: 4px; margin: 0 4px; }
-        .dot-container { margin: 10px 0; max-width: 100%; page-break-inside: avoid; }
+        .dot-container { margin: 10px 0; max-width: 100%; }
         .dot-container svg { max-width: 100%; height: auto; }
         .filename-input { padding: 5px; width: 200px; }
         header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #007bff; color: white; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
@@ -75,17 +75,14 @@
         <button onclick="closeNotification()">×</button>
     </div>
 
-    <!-- Подключение библиотек -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <script>
-        // Настройка частиц
         particlesJS("particles-js", {
             "particles": {
                 "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
@@ -100,20 +97,6 @@
             "retina_detect": true
         });
 
-        // Настройка marked для поддержки LaTeX
-        const renderer = new marked.Renderer();
-        renderer.code = function (code, lang) {
-            if (lang === 'dot') return `<div class="dot-container" data-dot="${encodeURIComponent(code)}"></div>`;
-            return `<pre><code class="language-${lang}">${code}</code></pre>`;
-        };
-        marked.setOptions({
-            renderer: renderer,
-            pedantic: false,
-            gfm: true,
-            breaks: false,
-            sanitize: false // Отключаем санитизацию для сохранения LaTeX
-        });
-
         const viz = new Viz();
         const input = document.getElementById('input');
         const preview = document.getElementById('preview');
@@ -126,24 +109,15 @@
 
         function updatePreview() {
             let text = input.value;
-
-            // Обработка DOT-блоков
             text = text.replace(/```dot\n([\s\S]*?)```/g, (_, dot) => `<div class="dot-container" data-dot="${encodeURIComponent(dot)}"></div>`);
-
-            // Парсинг Markdown с сохранением LaTeX
             preview.innerHTML = marked.parse(text);
-
             preview.style.fontFamily = fontSelect.value;
             preview.style.fontSize = `${fontSize.value}px`;
-
-            // Обработка кода
             preview.querySelectorAll('pre code').forEach(el => {
                 el.style.fontFamily = codeFontSelect.value;
                 el.style.maxWidth = '100%';
                 el.style.overflowX = 'auto';
             });
-
-            // Рендеринг DOT-блоков
             document.querySelectorAll('.dot-container').forEach(container => {
                 const dotCode = decodeURIComponent(container.dataset.dot);
                 viz.renderSVGElement(dotCode)
@@ -155,8 +129,6 @@
                     })
                     .catch(err => container.innerHTML = `Ошибка: ${err}`);
             });
-
-            // Подсветка кода
             document.querySelectorAll('pre code').forEach((block) => {
                 hljs.highlightElement(block);
                 const lang = block.className.replace('language-', '');
@@ -164,11 +136,6 @@
                     block.parentElement.setAttribute('data-lang', lang);
                 }
             });
-
-            // Рендеринг LaTeX
-            window.MathJax.typesetPromise([preview]).then(() => {
-                console.log('MathJax рендеринг завершен');
-            }).catch(err => console.error('Ошибка MathJax:', err));
         }
 
         fontUpload.addEventListener('change', (e) => {
@@ -194,7 +161,7 @@
 
         function downloadPDF() {
             const tempContainer = document.createElement('div');
-            tempContainer.style.width = '595pt'; // Ширина A4
+            tempContainer.style.width = '595pt'; // Ширина A4 в пунктах
             tempContainer.style.maxWidth = '595pt';
             tempContainer.style.padding = '15pt';
             tempContainer.style.fontFamily = fontSelect.value;
@@ -204,7 +171,6 @@
             tempContainer.style.boxSizing = 'border-box';
             tempContainer.innerHTML = preview.innerHTML;
 
-            // Применение стилей для экспорта
             tempContainer.querySelectorAll('.dot-container svg').forEach(svg => {
                 svg.style.maxWidth = '100%';
                 svg.style.height = 'auto';
@@ -217,29 +183,21 @@
             tempContainer.querySelectorAll('p, pre, div.dot-container').forEach(el => {
                 el.style.breakInside = 'avoid';
                 el.style.pageBreakInside = 'avoid';
-                el.style.pageBreakBefore = 'auto'; // Умный разрыв
-            });
-            tempContainer.querySelectorAll('p').forEach(el => {
-                el.style.orphans = '3';
-                el.style.widows = '3';
             });
 
             document.body.appendChild(tempContainer);
 
-            // Рендеринг LaTeX перед экспортом
-            window.MathJax.typesetPromise([tempContainer]).then(() => {
-                const filename = filenameInput.value || 'document';
-                html2pdf(tempContainer, {
-                    margin: 0.5,
-                    filename: `${filename}.pdf`,
-                    html2canvas: { scale: 3, scrollY: 0, useCORS: true, windowWidth: 595 }, // Увеличен масштаб
-                    jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-                    pagebreak: { mode: ['css', 'legacy'], avoid: ['p', 'pre', '.dot-container'] }
-                }).then(() => {
-                    document.body.removeChild(tempContainer);
-                    showNotification(filename);
-                }).catch(err => console.error('Ошибка экспорта:', err));
-            }).catch(err => console.error('Ошибка MathJax:', err));
+            const filename = filenameInput.value || 'document';
+            html2pdf(tempContainer, {
+                margin: 0.5,
+                filename: `${filename}.pdf`,
+                html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'], before: '.page-break', avoid: ['p', 'pre', '.dot-container'] }
+            }).then(() => {
+                document.body.removeChild(tempContainer);
+                showNotification(filename);
+            });
         }
 
         function showNotification(filename) {
