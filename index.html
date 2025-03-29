@@ -2,77 +2,1244 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Markdown to PDF</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' fill='white'>M</text></svg>">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat&family=Cascadia+Mono&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Cascadia+Mono&family=Roboto+Mono&family=Fira+Code&family=JetBrains+Mono&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/github.min.css">
     <style>
-        body { margin: 0; background: #f5f5f5; font-family: 'Montserrat', sans-serif; }
-        #particles-js { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .container { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; height: calc(100vh - 60px); }
-        .panel { flex: 1; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .controls { padding: 10px; background: #fafafa; display: flex; gap: 10px; flex-wrap: wrap; position: sticky; top: 0; z-index: 10; }
-        select, input, button { padding: 5px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #007bff; color: white; border: none; }
-        button:hover { background: #0056b3; }
-        #input { width: 100%; height: calc(100vh - 100px); border: none; padding: 15px; font-size: 14px; resize: none; outline: none; box-sizing: border-box; font-family: 'Cascadia Mono', monospace; }
-        #preview { padding: 15px; font-size: 14px; max-width: 100%; word-wrap: break-word; box-sizing: border-box; overflow-y: auto; height: calc(100vh - 100px); color: #333; background: #fff; font-family: 'Cascadia Mono', monospace; }
-        pre { background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; position: relative; }
-        pre::before { content: attr(data-lang); position: absolute; top: 5px; left: 10px; font-size: 12px; color: #666; }
-        pre::after { content: "Копировать"; position: absolute; top: 5px; right: 10px; font-size: 12px; color: #007bff; cursor: pointer; }
-        code { padding: 2px 6px; background: #fae9de; color: #c56c39; border-radius: 4px; margin: 0 4px; }
-        .dot-container { margin: 10px 0; max-width: 100%; }
-        .dot-container svg { max-width: 100%; height: auto; }
-        .filename-input { padding: 5px; width: 200px; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #007bff; color: white; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
-        .back-btn { background: #007bff; color: white; padding: 5px 15px; border-radius: 5px; text-decoration: none; font-size: 18px; transition: background 0.3s; }
-        .back-btn:hover { background: #0056b3; }
-        h1 { margin: 0; font-size: 24px; }
-        #notification { position: fixed; bottom: 20px; left: 20px; background: #3b82f6; color: white; padding: 15px; border-radius: 10px; display: flex; align-items: center; gap: 10px; z-index: 1000; }
-        #notification button { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --header-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            --bg-color: #f8fafc;
+            --panel-color: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --code-color: #334155;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --loader-color: #3b82f6;
+            --dot-bg: #ffffff;
+            --dot-border: #e2e8f0;
+            --author-text: rgba(30, 41, 59, 0.3);
+            --header-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --modal-bg: rgba(0,0,0,0.5);
+            --scrollbar-thumb: #cbd5e1;
+            --scrollbar-track: #f1f5f9;
+            --panel-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --blue-text: #1e40af;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --header-gradient: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+            --bg-color: #0f172a;
+            --panel-color: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+            --code-bg: #1e293b;
+            --code-color: #e2e8f0;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --loader-color: #3b82f6;
+            --dot-bg: #1e293b;
+            --dot-border: #334155;
+            --author-text: rgba(248, 250, 252, 0.3);
+            --header-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --modal-bg: rgba(0,0,0,0.7);
+            --scrollbar-thumb: #475569;
+            --scrollbar-track: #1e293b;
+            --panel-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            --button-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --blue-text: #93c5fd;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            margin: 0;
+            padding: 0;
+            background: var(--bg-color); 
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+        
+        #particles-js { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: -1; 
+            opacity: 0.5;
+            background-color: var(--bg-color);
+            transition: opacity 0.3s;
+        }
+
+        .container { 
+            display: flex; 
+            gap: 20px; 
+            max-width: 1600px; 
+            margin: 0 auto; 
+            height: calc(100vh - 80px); 
+            padding: 80px 20px 30px;
+        }
+        
+        .panel { 
+            flex: 1; 
+            background: var(--panel-color); 
+            border-radius: 12px; 
+            box-shadow: var(--panel-shadow);
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid var(--border-color);
+        }
+        
+        .panel:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel-header { 
+            padding: 12px 15px; 
+            background: var(--panel-color); 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+            transition: all 0.3s;
+        }
+        
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-right: auto;
+        }
+        
+        label {
+            font-size: 14px;
+            color: var(--text-color);
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0.8;
+        }
+        
+        select, input, button { 
+            padding: 8px 12px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            font-size: 14px;
+            transition: all 0.2s ease;
+            height: 36px;
+            box-sizing: border-box;
+            background: var(--panel-color);
+            color: var(--text-color);
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        button { 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            box-shadow: var(--button-shadow);
+        }
+        
+        button:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tool-button {
+            background: var(--panel-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        
+        .tool-button:hover {
+            background: var(--code-bg);
+            border-color: var(--primary-color);
+        }
+        
+        #input { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            padding: 15px; 
+            font-size: 14px; 
+            resize: none; 
+            outline: none; 
+            box-sizing: border-box; 
+            font-family: 'Cascadia Mono', monospace;
+            line-height: 1.6;
+            background: var(--panel-color);
+            color: var(--text-color);
+            min-height: 300px;
+            transition: all 0.3s;
+        }
+        
+        #preview { 
+            padding: 15px; 
+            font-size: 14px; 
+            max-width: 100%; 
+            word-wrap: break-word; 
+            box-sizing: border-box; 
+            overflow-y: auto; 
+            height: 100%; 
+            color: var(--text-color); 
+            background: var(--panel-color); 
+            line-height: 1.6;
+            min-height: 300px;
+        }
+        
+        #preview h1, #preview h2, #preview h3, #preview h4, #preview h5, #preview h6 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+        
+        #preview p {
+            margin-bottom: 1em;
+        }
+        
+        #preview ul, #preview ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+        }
+        
+        #preview blockquote {
+            border-left: 3px solid var(--primary-color);
+            padding-left: 1em;
+            margin-left: 0;
+            margin-bottom: 1em;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        
+        pre { 
+            background: var(--code-bg); 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border-color); 
+            position: relative;
+            overflow-x: auto;
+            page-break-inside: avoid;
+            margin-bottom: 1em;
+            transition: all 0.3s;
+        }
+        
+        pre::before { 
+            content: attr(data-lang); 
+            position: absolute; 
+            top: 5px; 
+            left: 10px; 
+            font-size: 12px; 
+            color: var(--text-color);
+            opacity: 0.7;
+            font-weight: 500;
+        }
+        
+        code { 
+            padding: 2px 6px; 
+            background: var(--code-bg); 
+            color: var(--code-color); 
+            border-radius: 4px; 
+            margin: 0 4px; 
+            font-size: 0.9em;
+        }
+        
+        .dot-container { 
+            margin: 15px 0; 
+            max-width: 100%; 
+            background: var(--dot-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--dot-border);
+            overflow: auto;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .dot-container svg { 
+            max-width: 100% !important;
+            height: auto !important;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .filename-input { 
+            padding: 8px 12px; 
+            width: 120px; 
+        }
+        
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 30px;
+            background: var(--header-gradient); 
+            color: white; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            z-index: 100; 
+            box-shadow: var(--header-shadow);
+            height: 60px;
+            transition: all 0.3s ease;
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        .back-btn { 
+            background: rgba(255,255,255,0.15); 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-size: 14px; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .back-btn:hover { 
+            background: rgba(255,255,255,0.25); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        h1 { 
+            margin: 0; 
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .title-icon {
+            font-size: 22px;
+        }
+        
+        #notification { 
+            position: fixed; 
+            bottom: 20px; 
+            left: 20px; 
+            background: var(--success-color); 
+            color: white; 
+            padding: 12px 16px; 
+            border-radius: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            z-index: 1000; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateY(30px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        #notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        #notification.error {
+            background: var(--error-color);
+        }
+        
+        #notification button { 
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 18px; 
+            cursor: pointer; 
+            padding: 0;
+            display: flex;
+        }
+        
+        .pdf-loader {
+            position: fixed;
+            top: 0;
+            left: 0,
+            right: 0;
+            bottom: 0;
+            background: var(--modal-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        
+        .pdf-loader.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .loader-content {
+            background: var(--panel-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+        }
+        
+        .loader-spinner {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 20px;
+        }
+        
+        .loader-spinner-inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--loader-color);
+        }
+        
+        .loader-text {
+            font-size: 18px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+        
+        .theme-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-switcher:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .theme-icon {
+            width: 24px;
+            height: 24px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .page-break {
+            display: block;
+            height: 1px;
+            border: 0;
+            border-top: 1px dashed var(--text-color);
+            margin: 2em 0;
+            padding: 0;
+            position: relative;
+            opacity: 0.5;
+        }
+        
+        .page-break::after {
+            content: "Разрыв страницы";
+            position: absolute;
+            left: 50%;
+            top: -0.7em;
+            transform: translateX(-50%);
+            background: var(--panel-color);
+            padding: 0 10px;
+            font-size: 12px;
+            color: var(--text-color);
+        }
+        
+        .code-continuation {
+            display: block;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-top: -15px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .author-signature {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            font-size: 12px;
+            color: var(--author-text);
+            z-index: 90;
+            transition: all 0.3s;
+            user-select: none;
+            pointer-events: none;
+        }
+        
+        .author-signature a {
+            color: inherit;
+            text-decoration: none;
+            font-weight: 500;
+            pointer-events: auto;
+        }
+        
+        .author-signature a:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--modal-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            background: var(--panel-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--primary-color);
+            transform: rotate(90deg);
+        }
+        
+        .modal-body {
+            padding: 10px 0;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .info-section h3 {
+            color: var(--blue-text);
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-section p, .info-section li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .info-section ul, .info-section ol {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .feature-card h4 {
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+        
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        
+        .languages-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .language-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .language-badge:hover {
+            transform: translateY(-2px);
+        }
+
+        .editor-tools {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .font-settings {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .font-settings label {
+            margin-right: 5px;
+        }
+        
+        .copy-template-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+            margin-left: 10px;
+            padding: 2px 5px;
+        }
+        
+        .copy-template-btn:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            background: var(--panel-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+            transform: translateY(5px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-menu.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--code-bg);
+        }
+        
+        .dropdown-item pre {
+            margin: 5px 0;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+        
+        .thanks-modal {
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .thanks-modal h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .thanks-modal p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .telegram-btn {
+            background: #0088cc;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 500;
+            margin: 0 auto;
+            width: 200px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .telegram-btn:hover {
+            background: #0077b5;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 80px);
+            }
+            
+            .panel {
+                min-height: 400px;
+            }
+            
+            #input, #preview {
+                min-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 80px 10px 20px;
+            }
+
+            header {
+                padding: 10px 15px;
+            }
+
+            h1 {
+                font-size: 16px;
+            }
+
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .panel-header {
+                padding: 10px;
+                gap: 8px;
+            }
+
+            select, input, button {
+                padding: 6px 10px;
+                font-size: 13px;
+                height: 32px;
+            }
+
+            .filename-input {
+                width: 100px;
+            }
+            
+            .author-signature {
+                left: 10px;
+                bottom: 10px;
+                font-size: 11px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .editor-tools {
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .panel-header {
+                gap: 6px;
+            }
+
+            label {
+                font-size: 12px;
+            }
+
+            select, input, button {
+                padding: 5px 8px;
+                font-size: 12px;
+                height: 30px;
+            }
+
+            .filename-input {
+                width: 80px;
+            }
+            
+            header {
+                padding: 10px 12px;
+            }
+            
+            h1 {
+                font-size: 14px;
+                gap: 6px;
+            }
+            
+            .title-icon {
+                font-size: 20px;
+            }
+            
+            .editor-tools {
+                gap: 4px;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="particles-js"></div>
     <header>
-        <a href="https://topittop2.gitbook.io/konspekty" class="back-btn">← Назад</a>
-        <h1>Markdown → PDF (С блок схемами) <span style="font-size: 20px;">📝</span></h1>
-    </header>
-    <div class="container" style="margin-top: 60px;">
-        <div class="panel">
-            <div class="controls">
-                <label>Шрифт текста:</label>
-                <select id="fontSelect">
-                    <option value="Cascadia Mono">Cascadia Mono</option>
-                    <option value="Arial">Arial</option>
-                    <option value="Inter">Inter</option>
-                    <option value="Montserrat">Montserrat</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                </select>
-                <label>Шрифт кода:</label>
-                <select id="codeFontSelect">
-                    <option value="Cascadia Mono">Cascadia Mono</option>
-                    <option value="Courier New">Courier New</option>
-                    <option value="Consolas">Consolas</option>
-                    <option value="Monaco">Monaco</option>
-                </select>
-                <input type="number" id="fontSize" value="14" min="10" max="30">px
-                <input type="file" id="fontUpload" accept=".ttf,.otf">
-                <button id="downloadPDFBtn">Скачать PDF</button>
+        <div class="header-content">
+            <a href="https://endermanik13.gitbook.io/info" class="back-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Энциклопедия
+            </a>
+            <h1>
+                <span class="title-icon">📝</span>
+                Markdown → PDF (Блок-схемы)
+            </h1>
+            <div style="display: flex; gap: 10px;">
+                <button id="showInfoBtn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    Информация
+                </button>
+                <button id="thanksBtn" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                    </svg>
+                    Поблагодарить
+                </button>
             </div>
-            <textarea id="input" placeholder="Вставь Markdown..."></textarea>
+        </div>
+    </header>
+    <div class="container">
+        <div class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Редактор Markdown</div>
+            </div>
+            <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color);">
+                <div class="editor-tools">
+                    <div style="position: relative;">
+                        <button class="tool-button" id="insertHeading">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12h8"></path>
+                                <path d="M4 18V6"></path>
+                                <path d="M12 18V6"></path>
+                                <path d="M17 13v-3h4"></path>
+                                <path d="M17 17.7c.4.2.8.3 1.3.3 1.5 0 2.7-1.1 2.7-2.5S19.8 13 18.3 13H17"></path>
+                            </svg>
+                            Заголовок
+                        </button>
+                        <div class="dropdown-menu" id="headingMenu">
+                            <div class="dropdown-item" onclick="insertTextAtCursor('Заголовок 1', '# ', '')">
+                                <pre># Заголовок 1</pre>
+                            </div>
+                            <div class="dropdown-item" onclick="insertTextAtCursor('Заголовок 2', '## ', '')">
+                                <pre>## Заголовок 2</pre>
+                            </div>
+                            <div class="dropdown-item" onclick="insertTextAtCursor('Заголовок 3', '### ', '')">
+                                <pre>### Заголовок 3</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="tool-button" id="insertBold">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                            <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                        </svg>
+                        Жирный
+                    </button>
+                    <button class="tool-button" id="insertItalic">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="4" x2="10" y2="4"></line>
+                            <line x1="14" y1="20" x2="5" y2="20"></line>
+                            <line x1="15" y1="4" x2="9" y2="20"></line>
+                        </svg>
+                        Курсив
+                    </button>
+                    <button class="tool-button" id="insertList">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        Список
+                    </button>
+                    <button class="tool-button" id="insertLink">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        Ссылка
+                    </button>
+                    <button class="tool-button" id="insertImage">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        Изображение
+                    </button>
+                    <button class="tool-button" id="insertCode">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"></polyline>
+                            <polyline points="8 6 2 12 8 18"></polyline>
+                        </svg>
+                        Код
+                    </button>
+                    <button class="tool-button" id="insertQuote">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Цитата
+                    </button>
+                    <button class="tool-button" id="insertPageBreak">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="19" x2="12" y2="5"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Разрыв
+                    </button>
+                </div>
+                <div class="font-settings">
+                    <label>Шрифт:</label>
+                    <select id="textFont">
+                        <option value="'Montserrat', sans-serif">Montserrat</option>
+                        <option value="'Cascadia Mono', monospace">Cascadia Mono</option>
+                        <option value="Arial, sans-serif">Arial</option>
+                        <option value="'Times New Roman', serif">Times New Roman</option>
+                    </select>
+                    <label>Код:</label>
+                    <select id="codeFont">
+                        <option value="'Cascadia Mono', monospace">Cascadia Mono</option>
+                        <option value="'Fira Code', monospace">Fira Code</option>
+                        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+                        <option value="'Roboto Mono', monospace">Roboto Mono</option>
+                    </select>
+                </div>
+            </div>
+            <textarea id="input" placeholder="Введите Markdown текст здесь..."></textarea>
         </div>
         <div class="panel">
-            <div class="controls">
-                <label>Имя файла:</label>
-                <input type="text" id="filename" class="filename-input" value="document" placeholder="Сюда вводить">.pdf
+            <div class="panel-header">
+                <div class="panel-title">Предпросмотр</div>
+                <div style="display: flex; gap: 10px;">
+                    <label>Размер:</label>
+                    <input type="number" id="fontSize" value="14" min="10" max="30">
+                    
+                    <label>Имя:</label>
+                    <input type="text" id="filename" class="filename-input" value="document" placeholder="Имя файла">
+                    
+                    <button id="downloadPDFBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        PDF
+                    </button>
+                </div>
             </div>
             <div id="preview"></div>
         </div>
     </div>
-    <div id="notification" style="display: none;">
+    
+    <div id="notification">
         <span id="notificationText"></span>
         <button onclick="closeNotification()">×</button>
+    </div>
+    
+    <div class="pdf-loader">
+        <div class="loader-content">
+            <div class="loader-spinner">
+                <div class="loader-spinner-inner"></div>
+            </div>
+            <div class="loader-text">Генерация PDF...</div>
+        </div>
+    </div>
+
+    <div class="theme-switcher" id="themeSwitcher">
+        <svg class="theme-icon" id="themeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </div>
+    
+    <div class="author-signature">
+        by <a href="https://t.me/endermanik13" target="_blank">Endermanik13</a>
+    </div>
+    
+    <!-- Модальное окно с информацией -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">О инструменте Markdown to PDF</h2>
+                <button class="modal-close" id="closeInfoModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-section">
+                    <h3>✨ Мощный редактор документов</h3>
+                    <p>Этот инструмент позволяет создавать профессиональные документы с поддержкой:</p>
+                    <ul>
+                        <li>Форматирования Markdown</li>
+                        <li>Блок-схем и графиков (DOT/Graphviz)</li>
+                        <li>Подсветки синтаксиса для 20+ языков программирования</li>
+                        <li>Гибких настроек шрифтов и стилей</li>
+                    </ul>
+
+                </div>
+                
+                <div class="info-section">
+                    <h3>📝 Основные возможности</h3>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">🔤</div>
+                            <h4>Богатое форматирование</h4>
+                            <p>Заголовки, списки, таблицы, цитаты и другой синтаксис Markdown</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <h4>Визуализация данных</h4>
+                            <p>Создание сложных блок-схем и графиков через DOT</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔧</div>
+                            <h4>Гибкие настройки</h4>
+                            <p>Выбор шрифтов для текста и кода, размеров и тем оформления</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📄</div>
+                            <h4>Экспорт в PDF</h4>
+                            <p>Профессиональное форматирование для печати</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>🛠 Как использовать</h3>
+                    <ol>
+                        <li>Вводите текст с Markdown-разметкой в левой панели</li>
+                        <li>Используйте панель инструментов для быстрой вставки элементов</li>
+                        <li>Создавайте блок-схемы в блоках <code>```dot</code></li>
+                        <li>Настраивайте шрифты и размер текста</li>
+                        <li>Экспортируйте в PDF одним кликом</li>
+                    </ol>
+                </div>
+                
+                <div class="info-section">
+                    <h3>📚 Поддерживаемые языки</h3>
+                    <div class="languages-grid">
+                        <span class="language-badge">Python</span>
+                        <span class="language-badge">JavaScript</span>
+                        <span class="language-badge">HTML/CSS</span>
+                        <span class="language-badge">C++</span>
+                        <span class="language-badge">Java</span>
+                        <span class="language-badge">SQL</span>
+                        <span class="language-badge">DOT</span>
+                        <span class="language-badge">и другие...</span>
+                    </div>
+		<div> </div>
+                    <button class="copy-template-btn" id="copyTemplateBtn">
+                                     
+                        
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно благодарности -->
+    <div class="modal-overlay" id="thanksModal">
+        <div class="modal-content thanks-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Спасибо за вашу поддержку! ❤️</h2>
+                <button class="modal-close" id="closeThanksModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Автор очень старается впечатлить своих зрителей и коллег по учёбе, и ему очень было бы приятно услышать пару идей или благодарностей в свой адрес.</p>
+                <p>Ваша обратная связь помогает улучшать инструмент и мотивирует на дальнейшую работу!</p>
+                <a href="https://t.me/endermanik13" class="telegram-btn" target="_blank">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 3l-6.5 18a.55.55 0 0 1-1 0L10 14l-7-3.5a.55.55 0 0 1 0-1L21 3"></path>
+                    </svg>
+                    Telegram автора
+                </a>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
@@ -81,142 +1248,541 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.3/dist/purify.min.js"></script>
 
     <script>
+        // Initialize particles.js
         particlesJS("particles-js", {
             "particles": {
                 "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
-                "color": { "value": "#cccccc" },
-                "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" } },
-                "opacity": { "value": 0.3, "random": false },
+                "color": { "value": "#3b82f6" },
+                "shape": { 
+                    "type": "circle", 
+                    "stroke": { "width": 0, "color": "#000000" },
+                    "polygon": { "nb_sides": 5 }
+                },
+                "opacity": { "value": 0.5, "random": false },
                 "size": { "value": 3, "random": true },
-                "line_linked": { "enable": false },
-                "move": { "enable": true, "speed": 2, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false }
+                "line_linked": { 
+                    "enable": true, 
+                    "distance": 100, 
+                    "color": "#3b82f6", 
+                    "opacity": 0.4, 
+                    "width": 1 
+                },
+                "move": { 
+                    "enable": true, 
+                    "speed": 1.5, 
+                    "direction": "none", 
+                    "random": true, 
+                    "straight": false, 
+                    "out_mode": "out", 
+                    "bounce": false
+                }
             },
-            "interactivity": { "detect_on": "canvas", "events": { "onhover": { "enable": false }, "onclick": { "enable": false } }, "modes": {} },
+            "interactivity": { 
+                "detect_on": "canvas", 
+                "events": { 
+                    "onhover": { "enable": true, "mode": "grab" }, 
+                    "onclick": { "enable": true, "mode": "push" } 
+                }, 
+                "modes": {
+                    "grab": { "distance": 100, "line_linked": { "opacity": 0.8 } },
+                    "push": { "particles_nb": 4 }
+                } 
+            },
             "retina_detect": true
         });
 
-        const viz = new Viz();
+        // DOM elements
         const input = document.getElementById('input');
         const preview = document.getElementById('preview');
-        const fontSelect = document.getElementById('fontSelect');
-        const codeFontSelect = document.getElementById('codeFontSelect');
-        const fontSize = document.getElementById('fontSize');
-        const fontUpload = document.getElementById('fontUpload');
+        const fontSelect = document.getElementById('fontSize');
         const downloadPDFBtn = document.getElementById('downloadPDFBtn');
         const filenameInput = document.getElementById('filename');
+        const notification = document.getElementById('notification');
+        const pdfLoader = document.querySelector('.pdf-loader');
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        const themeIcon = document.getElementById('themeIcon');
+        const authorSignature = document.querySelector('.author-signature');
+        const infoModal = document.getElementById('infoModal');
+        const showInfoBtn = document.getElementById('showInfoBtn');
+        const closeInfoModalBtn = document.getElementById('closeInfoModalBtn');
+        const textFontSelect = document.getElementById('textFont');
+        const codeFontSelect = document.getElementById('codeFont');
+        const thanksBtn = document.getElementById('thanksBtn');
+        const thanksModal = document.getElementById('thanksModal');
+        const closeThanksModalBtn = document.getElementById('closeThanksModalBtn');
+        const headingMenu = document.getElementById('headingMenu');
+        const insertHeadingBtn = document.getElementById('insertHeading');
+        const copyTemplateBtn = document.getElementById('copyTemplateBtn');
+        
+        // Tool buttons
+        const insertBoldBtn = document.getElementById('insertBold');
+        const insertItalicBtn = document.getElementById('insertItalic');
+        const insertListBtn = document.getElementById('insertList');
+        const insertLinkBtn = document.getElementById('insertLink');
+        const insertImageBtn = document.getElementById('insertImage');
+        const insertCodeBtn = document.getElementById('insertCode');
+        const insertQuoteBtn = document.getElementById('insertQuote');
+        const insertPageBreakBtn = document.getElementById('insertPageBreak');
+        
+        // Initialize Viz.js
+        const viz = new Viz();
+        
+        // Theme management
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            if (theme === 'dark') {
+                themeIcon.innerHTML = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+                themeIcon.style.color = '#ffd700';
+            } else {
+                themeIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+                themeIcon.style.color = '#ffffff';
+            }
+        }
 
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                setTheme('light');
+            } else {
+                setTheme('dark');
+            }
+        }
+
+        // Initialize theme - force light theme by default
+        setTheme('light');
+
+        // Modal functions
+        function showInfoModal() {
+            infoModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideInfoModal() {
+            infoModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function showThanksModal() {
+            thanksModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideThanksModal() {
+            thanksModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Toggle heading menu
+        function toggleHeadingMenu() {
+            headingMenu.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!insertHeadingBtn.contains(e.target) && !headingMenu.contains(e.target)) {
+                headingMenu.classList.remove('active');
+            }
+        });
+
+        // Insert text at cursor position
+        function insertTextAtCursor(text, wrapBefore = '', wrapAfter = '') {
+            const textarea = input;
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            const selectedText = textarea.value.substring(startPos, endPos);
+            
+            textarea.value = textarea.value.substring(0, startPos) + 
+                            wrapBefore + selectedText + wrapAfter + 
+                            textarea.value.substring(endPos);
+            
+            if (selectedText) {
+                textarea.selectionStart = startPos;
+                textarea.selectionEnd = endPos + wrapBefore.length + wrapAfter.length;
+            } else {
+                textarea.selectionStart = textarea.selectionEnd = startPos + wrapBefore.length;
+            }
+            
+            textarea.focus();
+            updatePreview();
+        }
+
+        // Копирование шаблона без уведомления
+        copyTemplateBtn.addEventListener('click', function() {
+            const templateText = `Тема практической: [НАЗВАНИЕ ТЕМЫ ЗАМЕНИ ЗДЕСЬ!!!]
+Так же распиши какие патерны ты используешь
+надо сделать так.
+Пишешь всё без объяснений..
+Пример берёшь что нибудь связанное с системой, к примеру логин в систему маркет плейса, ну и покупка чего нибудь. Ты волен придумывать другие идеи, но не с реальной жизнью
+Сначала пишешь код на пайтоне, максимально что то простое, коментарий под сложные строки кода.
+Потом пишешь схему на языке dot.
+Всего должно быть три примера.
+Вот ещё пояснения для стрелок блок схемы.
+Надо чтобы были классы, и чтобы были правельные стрелки
+вот какие стрелки правельно будут, и почини вторую схему, так же сделай с классами и правельными стрелками
+Агрегация - стрелка где наконечник это пустой ромб
+Композиция - тоже самое но ромб закрашен
+Зависимость - пунктирная стрелка
+Обобщение - стрелка где внутри наконечник пустой
+Оюъяснения
+Агрегация – объект A использует объект B, но B может существовать без A.
+
+Композиция – объект A содержит B, и B без A – ничто.
+
+Зависимость – A зависит от B (если B ломается, то A тоже).
+
+Обобщение – A наследует B или реализует интерфейс B.
+
+Так же это должны быть как группы, ну типо классы.
+Типо класс, и в нём к примеру
+Файл
+-------
+Размер: int
+Название:  String
+Расширение: String
+
+Пишешь все коды разные 3 шт в чате.
+Код пайтона, и к нему блок схему
+
+Вот пример ХОРОШЕЙ РАЗВЁРНУТОЙ БЛОК СХЕМЫ
+digraph uml_example {
+    node [shape=record];
+
+    "Файл" [label="{ Файл | Размер: int \l Расширение: string \l Название: string \l get_info(): string \l }"];
+    "БазаВирусов" [label="{ База Вирусов | вирусы: list \l проверить_на_вирус(файл: Файл): bool \l }"];
+    "Сканер" [label="{ Сканер | база_вирусов: БазаВирусов \l сканировать(файл: Файл): string \l }"];
+    "Антивирус" [label="{ Антивирус | сканер: Сканер \l база: БазаВирусов \l проверить_файл(имя: string): string \l }"];
+
+    "Антивирус" -> "БазаВирусов" [label="Композиция", arrowhead="diamond", fillcolor=black, style=filled];
+    "Антивирус" -> "Сканер" [label="Агрегация", arrowhead="odiamond"];
+    "Сканер" -> "БазаВирусов" [label="Агрегация", arrowhead="odiamond"];
+    "Сканер" -> "Файл" [label="Зависимость", style="dashed", arrowhead="open"];
+}`;
+            navigator.clipboard.writeText(templateText);
+        });
+
+        // Tool button handlers
+        insertHeadingBtn.addEventListener('click', toggleHeadingMenu);
+        insertBoldBtn.addEventListener('click', () => insertTextAtCursor('', '**', '**'));
+        insertItalicBtn.addEventListener('click', () => insertTextAtCursor('', '_', '_'));
+        insertListBtn.addEventListener('click', () => insertTextAtCursor('Элемент списка', '- ', ''));
+        insertLinkBtn.addEventListener('click', () => insertTextAtCursor('текст ссылки', '[', '](url)'));
+        insertImageBtn.addEventListener('click', () => insertTextAtCursor('альтернативный текст', '![', '](image-url)'));
+        insertCodeBtn.addEventListener('click', () => insertTextAtCursor('код', '```\n', '\n```'));
+        insertQuoteBtn.addEventListener('click', () => insertTextAtCursor('цитата', '> ', ''));
+        
+        // Custom Marked renderer
+        const renderer = new marked.Renderer();
+        
+        renderer.code = function(code, language) {
+            const validLang = !!(language && hljs.getLanguage(language));
+            const highlighted = validLang ? hljs.highlight(language, code).value : hljs.highlightAuto(code).value;
+            return `<pre data-lang="${language || ''}"><code class="hljs ${language}">${highlighted}</code></pre>`;
+        };
+
+        // Update preview function
         function updatePreview() {
             let text = input.value;
-            text = text.replace(/```dot\n([\s\S]*?)```/g, (_, dot) => `<div class="dot-container" data-dot="${encodeURIComponent(dot)}"></div>`);
-            preview.innerHTML = marked.parse(text);
-            preview.style.fontFamily = fontSelect.value;
-            preview.style.fontSize = `${fontSize.value}px`;
+            
+            // Process DOT diagrams
+            text = text.replace(/```dot\n([\s\S]*?)```/g, (_, dot) => {
+                return `<div class="dot-container" data-dot="${encodeURIComponent(dot)}"></div>`;
+            });
+            
+            // Process page breaks
+            text = text.replace(/<!--\s*PAGEBREAK\s*-->/g, '<div class="page-break"></div>');
+            
+            // Sanitize and parse Markdown with custom renderer
+            const dirty = marked.parse(text, { renderer });
+            preview.innerHTML = DOMPurify.sanitize(dirty);
+            
+            // Apply styles
+            preview.style.fontSize = `${fontSelect.value}px`;
+            
+            // Process code blocks
             preview.querySelectorAll('pre code').forEach(el => {
                 el.style.fontFamily = codeFontSelect.value;
                 el.style.maxWidth = '100%';
                 el.style.overflowX = 'auto';
             });
+            
+            // Apply text font to all elements except code
+            preview.querySelectorAll('*:not(pre):not(code)').forEach(el => {
+                el.style.fontFamily = textFontSelect.value;
+            });
+            
+            // Process images to be responsive
+            preview.querySelectorAll('img').forEach(img => {
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+            });
+            
+            // Render DOT diagrams
             document.querySelectorAll('.dot-container').forEach(container => {
                 const dotCode = decodeURIComponent(container.dataset.dot);
                 viz.renderSVGElement(dotCode)
                     .then(svg => {
                         container.innerHTML = '';
-                        container.appendChild(svg);
                         svg.style.maxWidth = '100%';
                         svg.style.height = 'auto';
+                        svg.style.display = 'block';
+                        svg.style.margin = '0 auto';
+                        svg.style.overflow = 'visible';
+                        svg.removeAttribute('width');
+                        svg.removeAttribute('height');
+                        container.appendChild(svg);
                     })
-                    .catch(err => container.innerHTML = `Ошибка: ${err}`);
-            });
-            document.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightElement(block);
-                const lang = block.className.replace('language-', '');
-                if (lang && lang !== 'dot') {
-                    block.parentElement.setAttribute('data-lang', lang);
-                }
+                    .catch(err => {
+                        container.innerHTML = `<div class="dot-error">Ошибка в DOT синтаксисе: ${err}</div>`;
+                    });
             });
         }
 
-        fontUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && (file.name.endsWith('.ttf') || file.name.endsWith('.otf'))) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const fontName = file.name.split('.')[0];
-                    const fontFace = new FontFace(fontName, event.target.result);
-                    fontFace.load().then((loadedFont) => {
-                        document.fonts.add(loadedFont);
-                        const option = document.createElement('option');
-                        option.value = fontName;
-                        option.text = fontName;
-                        fontSelect.add(option);
-                        codeFontSelect.add(option.cloneNode(true));
-                        updatePreview();
-                    });
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        });
-
-        function downloadPDF() {
+        // Download PDF function
+        async function downloadPDF() {
+            const filename = filenameInput.value.trim() || 'document';
+            
+            // Show loading animation
+            pdfLoader.classList.add('active');
+            
+            // Create a temporary container for PDF generation (always light theme)
             const tempContainer = document.createElement('div');
-            tempContainer.style.width = '595pt'; // Ширина A4 в пунктах
+            tempContainer.style.width = '595pt';
             tempContainer.style.maxWidth = '595pt';
-            tempContainer.style.padding = '15pt';
-            tempContainer.style.fontFamily = fontSelect.value;
-            tempContainer.style.fontSize = `${fontSize.value}px`;
+            tempContainer.style.padding = '20pt 40pt';
+            tempContainer.style.fontFamily = textFontSelect.value;
+            tempContainer.style.fontSize = `${fontSelect.value}px`;
             tempContainer.style.color = '#333';
             tempContainer.style.background = '#fff';
             tempContainer.style.boxSizing = 'border-box';
+            
+            // Clone the preview content but force light theme for PDF
             tempContainer.innerHTML = preview.innerHTML;
-
-            tempContainer.querySelectorAll('.dot-container svg').forEach(svg => {
-                svg.style.maxWidth = '100%';
-                svg.style.height = 'auto';
-            });
+            
+            // Process DOT diagrams for PDF
+            const dotContainers = tempContainer.querySelectorAll('.dot-container');
+            for (const container of dotContainers) {
+                const dotCode = decodeURIComponent(container.dataset.dot);
+                try {
+                    const svg = await viz.renderSVGElement(dotCode);
+                    container.innerHTML = '';
+                    const maxWidth = 515;
+                    const svgWidth = svg.width.baseVal.value;
+                    const svgHeight = svg.height.baseVal.value;
+                    
+                    if (svgWidth > maxWidth) {
+                        const scale = maxWidth / svgWidth;
+                        svg.setAttribute('width', maxWidth);
+                        svg.setAttribute('height', svgHeight * scale);
+                    }
+                    
+                    svg.style.maxWidth = '100%';
+                    svg.style.height = 'auto';
+                    svg.style.display = 'block';
+                    svg.style.margin = '0 auto';
+                    container.appendChild(svg);
+                } catch (err) {
+                    container.innerHTML = `<div>Ошибка в DOT синтаксисе: ${err}</div>`;
+                }
+            }
+            
+            // Process elements for PDF
             tempContainer.querySelectorAll('pre, code').forEach(el => {
                 el.style.maxWidth = '100%';
                 el.style.overflowX = 'auto';
                 el.style.whiteSpace = 'pre-wrap';
+                el.style.fontFamily = codeFontSelect.value;
+                el.style.backgroundColor = '#f8f9fa';
+                el.style.color = '#333';
             });
-            tempContainer.querySelectorAll('p, pre, div.dot-container').forEach(el => {
-                el.style.breakInside = 'avoid';
-                el.style.pageBreakInside = 'avoid';
+            
+            // Process images for PDF
+            tempContainer.querySelectorAll('img').forEach(img => {
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
             });
-
+            
+            // Add continuation notices for split code blocks
+            tempContainer.querySelectorAll('pre').forEach(pre => {
+                const rect = pre.getBoundingClientRect();
+                if (rect.height > 500) {
+                    const continuation = document.createElement('div');
+                    continuation.className = 'code-continuation';
+                    continuation.textContent = 'Это не полный код, продолжение на следующей странице';
+                    pre.parentNode.insertBefore(continuation, pre.nextSibling);
+                }
+            });
+            
+            // Improved page break handling
+            tempContainer.querySelectorAll('*').forEach(el => {
+                if (['p', 'pre', 'div', 'table', 'ul', 'ol', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(el.tagName.toLowerCase())) {
+                    el.style.breakInside = 'avoid';
+                    el.style.pageBreakInside = 'avoid';
+                }
+                
+                if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(el.tagName.toLowerCase())) {
+                    const prev = el.previousElementSibling;
+                    if (prev && prev.tagName.toLowerCase() === 'pre') {
+                        prev.style.marginBottom = '20pt';
+                        el.style.marginTop = '20pt';
+                    }
+                }
+            });
+            
+            // Add to DOM for rendering
             document.body.appendChild(tempContainer);
-
-            const filename = filenameInput.value || 'document';
-            html2pdf(tempContainer, {
-                margin: 0.5,
-                filename: `${filename}.pdf`,
-                html2canvas: { scale: 2, scrollY: 0, useCORS: true },
-                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'], before: '.page-break', avoid: ['p', 'pre', '.dot-container'] }
-            }).then(() => {
+            
+            try {
+                // Configure html2pdf
+                const options = {
+                    margin: [15, 15, 15, 15],
+                    filename: `${filename}.pdf`,
+                    html2canvas: { 
+                        scale: 2,
+                        scrollY: 0,
+                        useCORS: true,
+                        logging: true,
+                        onclone: (clonedDoc) => {
+                            clonedDoc.body.style.backgroundColor = '#fff';
+                            clonedDoc.body.style.color = '#333';
+                            
+                            clonedDoc.querySelectorAll('pre').forEach(pre => {
+                                pre.style.boxShadow = 'none';
+                                pre.style.border = '1px solid #ddd';
+                                pre.style.backgroundColor = '#f8f9fa';
+                                pre.style.borderRadius = '8px';
+                            });
+                            
+                            clonedDoc.querySelectorAll('.dot-container svg').forEach(svg => {
+                                const maxWidth = 515;
+                                const svgWidth = svg.width.baseVal.value;
+                                const svgHeight = svg.height.baseVal.value;
+                                
+                                if (svgWidth > maxWidth) {
+                                    const scale = maxWidth / svgWidth;
+                                    svg.setAttribute('width', maxWidth);
+                                    svg.setAttribute('height', svgHeight * scale);
+                                }
+                                
+                                svg.style.maxWidth = '100%';
+                                svg.style.height = 'auto';
+                                svg.style.display = 'block';
+                                svg.style.margin = '0 auto';
+                            });
+                            
+                            clonedDoc.querySelectorAll('img').forEach(img => {
+                                img.style.maxWidth = '100%';
+                                img.style.height = 'auto';
+                            });
+                        }
+                    },
+                    jsPDF: { 
+                        unit: 'pt', 
+                        format: 'a4', 
+                        orientation: 'portrait',
+                        compress: true
+                    },
+                    pagebreak: { 
+                        mode: ['css', 'legacy', 'avoid-all'], 
+                        before: '.page-break',
+                        avoid: ['p', 'pre', 'div', 'table', 'ul', 'ol', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+                    }
+                };
+                
+                // Generate PDF
+                await html2pdf().set(options).from(tempContainer).toPdf().get('pdf').then((pdf) => {
+                    pdf.save(`${filename}.pdf`);
+                });
+                
+                // Show success notification
+                showNotification(`Документ ${filename}.pdf успешно сохранен`, 'success');
+                
+            } catch (error) {
+                console.error('PDF generation error:', error);
+                showNotification(`Ошибка при создании PDF: ${error.message}`, 'error');
+            } finally {
                 document.body.removeChild(tempContainer);
-                showNotification(filename);
-            });
+                pdfLoader.classList.remove('active');
+            }
         }
 
-        function showNotification(filename) {
+        // Notification system
+        function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             const notificationText = document.getElementById('notificationText');
-            notificationText.innerText = `Ваш документ ${filename}.pdf был скачен. Спасибо что пользуетесь сайтом❤`;
-            notification.style.display = 'flex';
-            setTimeout(() => notification.style.display = 'none', 3000);
+            
+            notificationText.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.background = 'var(--error-color)';
+                notification.classList.add('error');
+            } else {
+                notification.style.background = 'var(--success-color)';
+                notification.classList.remove('error');
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
         }
 
         function closeNotification() {
-            document.getElementById('notification').style.display = 'none';
+            notification.classList.remove('show');
+        }
+        
+        // Insert page break
+        function insertPageBreak() {
+            const textarea = input;
+            const startPos = textarea.selectionStart;
+            const endPos = textarea.selectionEnd;
+            const breakText = '\n<!-- PAGEBREAK -->\n';
+            
+            textarea.value = textarea.value.substring(0, startPos) + breakText + textarea.value.substring(endPos);
+            textarea.selectionStart = textarea.selectionEnd = startPos + breakText.length;
+            updatePreview();
+            showNotification('Разрыв страницы добавлен', 'info');
         }
 
+        // Close modals on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (infoModal.classList.contains('active')) {
+                    hideInfoModal();
+                }
+                if (thanksModal.classList.contains('active')) {
+                    hideThanksModal();
+                }
+            }
+        });
+
+        // Event listeners
         input.addEventListener('input', updatePreview);
         fontSelect.addEventListener('change', updatePreview);
-        codeFontSelect.addEventListener('change', updatePreview);
-        fontSize.addEventListener('change', updatePreview);
         downloadPDFBtn.addEventListener('click', downloadPDF);
+        insertPageBreakBtn.addEventListener('click', insertPageBreak);
+        themeSwitcher.addEventListener('click', toggleTheme);
+        showInfoBtn.addEventListener('click', showInfoModal);
+        closeInfoModalBtn.addEventListener('click', hideInfoModal);
+        thanksBtn.addEventListener('click', showThanksModal);
+        closeThanksModalBtn.addEventListener('click', hideThanksModal);
+        textFontSelect.addEventListener('change', updatePreview);
+        codeFontSelect.addEventListener('change', updatePreview);
+        
+        // Initialize with empty content
         updatePreview();
     </script>
 </body>
